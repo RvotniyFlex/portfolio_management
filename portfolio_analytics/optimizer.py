@@ -17,7 +17,11 @@ class Optimizer:
     """
 
     def __init__(self, data, constrs=[], bounds=None, mean_return=None, cov_return=None, seed=42):
-        self.data = data
+
+        if np.all(np.abs(data) != np.inf):
+            self.data = data
+        else:
+            raise ValueError('В данных замечены значение inf')
         self.seed = seed
         self.constrs = constrs
         self.bounds = bounds
@@ -45,7 +49,9 @@ class Optimizer:
     @cached_property
     def return_rate_border(self):
         mean_return = self.mean_return
-        return min(mean_return), max(mean_return)
+        min_border = min(mean_return)
+        max_border = max(mean_return)
+        return min_border, max_border
 
     @staticmethod
     def portfolio_var(w, cov):
