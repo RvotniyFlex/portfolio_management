@@ -30,7 +30,7 @@ def expanding_covariance_with_step(
         Dict[pd.Timestamp, pd.DataFrame]: 
             Словарь, где:
             - ключ — метка времени (Timestamp) из индекса `df_returns` на текущем шаге,
-            - значение — ковариационная матрица, рассчитанная по всем данным с начала до текущего шага.
+            - значение — словарь из матрицы ковариаций и доходностей
     """
     cov_dict = {}
     # Начинаем с индекса = step, чтобы влез хотя бы один период
@@ -38,9 +38,10 @@ def expanding_covariance_with_step(
         current_date = df_returns.index[i-1]  # i-1, т.к. DataFrame идет с 0 до i-1
         # Берём все данные с начала до i
         slice_ = df_returns.iloc[:i]
+        cov_matr = risk_matrix(slice_, returns_data=True, method=cov_method)
+        mu = slice_.mean()
         # Считаем ковариацию
-        cov_dict[current_date] = risk_matrix(slice_, returns_data=True, method=cov_method)
-
+        cov_dict[current_date] = {'cov': cov_matr, 'mu': mu}
     return cov_dict
 
 
@@ -65,14 +66,15 @@ def rolling_covariance_with_step(
         Dict[pd.Timestamp, pd.DataFrame]: 
             Словарь, где:
             - ключ — метка времени (Timestamp) из индекса `df_returns` на текущем шаге,
-            - значение — ковариационная матрица, рассчитанная по всем данным с начала до текущего шага.
+            - значение — словарь из матрицы ковариаций и доходностей
+
     """
     cov_matrices_rolling = {}
 
     for current_date in df_returns.index[window_size::step]:
         window_slice = df_returns.loc[:current_date].tail(window_size)
         cov_mat = risk_matrix(window_slice, returns_data=True, method=cov_method)
-        cov_matrices_rolling[current_date] = cov_mat
+        mu = window_slice.ewm(span=step).mean().iloc[-1]
+        cov_matrices_rolling[current_date] = {'cov' : cov_mat, 'mu': mu}
 
-
-    return cov_matrices_rolling
+    return cov_matrices_rolling,
