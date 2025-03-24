@@ -12,7 +12,6 @@ def plot_efficient_frontier_curve(expect, std, label, ax):
         label (str): название для легенды
         ax (): ось графиуов
     """
-
     expect = np.array(expect)
     std = np.array(std)
     expect_border = np.quantile(expect, 0.01), np.quantile(expect, 0.99)
@@ -24,7 +23,7 @@ def plot_efficient_frontier_curve(expect, std, label, ax):
         x=expect[mask],
         y=std[mask],
         label=label,
-        ax=ax
+        ax=ax,
     )
 
     ax.set_ylabel("Expected return, %")

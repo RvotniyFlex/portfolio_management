@@ -2,6 +2,7 @@ from scipy.optimize import minimize, LinearConstraint
 from functools import cached_property
 import numpy as np
 from tqdm.notebook import tqdm
+from collections import defaultdict
 
 class Optimizer:
     """
@@ -85,12 +86,13 @@ class Optimizer:
                 constraints=constrs)
         return res
     
-    def efficient_frontier_curve(self, n_point=500):
+    def efficient_frontier_curve(self, n_point=500, presicion=4):
         """
-        Кривая эффективных портфелей
+        Кривая эффективных портфелей.
         
         Args: 
             n_point (int): требуемое кол-во точек
+            presicion (int): округление доходности для аггрегации и выбора минимальной дисперсии 
 
         Returns:
             results (List[(return, std, w)]): список решений
@@ -103,7 +105,17 @@ class Optimizer:
         for i in tqdm(range(n_point)):
             res = self.minimize_portfolio_var(current_rate)
             if res.success:
-                results.append((current_rate, res.fun, res.x))
+                results.append((current_rate, res.fun ** (1/2), res.x))
             current_rate += step
 
-        return results
+        groups = defaultdict(list)
+        for r, risk, weights in results:
+            rounded_r = round(r, presicion)
+            groups[rounded_r].append((r, risk, weights))
+
+        filtered_data = []
+        for rounded_r, items in groups.items():
+            min_risk = min(risk for _, risk, _ in items)
+            filtered_data.extend((r, risk, weights) for r, risk, weights in items if risk == min_risk)
+
+        return filtered_data
