@@ -4,3 +4,4 @@ portfolio_analytics.egg-info/
 __pycache__
 .env
 .DS_Store
+*.xlsx
