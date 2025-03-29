@@ -1,3 +1,7 @@
 portfolio_analytics.egg-info/
 *.csv
 *.log
+__pycache__
+.env
+.DS_Store
+*.xlsx
